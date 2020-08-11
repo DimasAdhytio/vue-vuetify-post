@@ -18,21 +18,23 @@
                                     <v-text-field
                                         outlined
                                         prepend-inner-icon="mdi-account"
-                                        type="email"
-                                        v-model="form.email"
-                                        :rules="[form.required,form.emailVal]"
+                                        type="text"
+                                        v-model="form.username"
+                                        placeholder="Username"
+                                        :rules="[form.required]"
                                         autofocus
                                     ></v-text-field>
                                     <v-text-field
                                         outlined
                                         prepend-inner-icon="mdi-key"
+                                        placeholder="Password"
                                         :append-icon="form.showPass ? 'mdi-eye' : 'mdi-eye-off'"
-                                        :type="form.showPass ? 'password': 'text'"
+                                        :type="form.showPass ? 'text': 'password'"
                                         v-model="form.pass"
                                         :rules="[form.required]"
                                         @click:append="form.showPass = !form.showPass"
                                     ></v-text-field>
-                                    <v-btn block color="primary">Submit</v-btn>
+                                    <v-btn block @click="onLogin()" color="primary">Submit</v-btn>
                                     <v-btn block color="red" dark class="mt-3">Cancel</v-btn>
                                 </v-form>
                             </v-card-text>
@@ -50,12 +52,22 @@ export default {
     data() {
         return {
             form: {
-                email: 'sada@asd',
-                pass: 'sadas',
+                username: '',
+                pass: '',
                 showPass: false,
                 required: value => !!value || "Please don't leave it empty",
-                emailVal: v => /.+@.+/.test(v) || 'E-mail must be valid'
             }
+        }
+    },
+    methods: {
+        onLogin() {
+            this.$store.dispatch('login',{
+                username: this.form.username,
+                pass: this.form.pass
+            }).then(response => {
+                this.$router.push({name: 'Dashboard'})
+                console.log(response);
+            })
         }
     }
     
