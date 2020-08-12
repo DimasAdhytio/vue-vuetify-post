@@ -65,6 +65,7 @@ export default {
                 username: this.form.username,
                 pass: this.form.pass
             }).then(response => {
+                this.$store.dispatch('userData')
                 this.$router.push({name: 'Dashboard'})
                 console.log(response);
             })
