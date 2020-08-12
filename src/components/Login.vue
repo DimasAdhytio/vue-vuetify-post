@@ -14,7 +14,7 @@
                                 LOGIN
                             </v-card-title>
                             <v-card-text>
-                                <v-form>
+                                <v-form @submit.prevent="onLogin()">
                                     <v-text-field
                                         outlined
                                         prepend-inner-icon="mdi-account"

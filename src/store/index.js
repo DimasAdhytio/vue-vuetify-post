@@ -16,6 +16,10 @@ export default new Vuex.Store({
   mutations: {
     getKey(state, token) {
       state.token = token
+    },
+    destroyKey(state) {
+      state.token = null
+      localStorage.removeItem('access_token')
     }
   },
   actions: {
@@ -35,6 +39,24 @@ export default new Vuex.Store({
           resolve(response)
         }).catch(error => {
           console.log(error);
+          alert(error)
+          reject(error)
+        })
+      })
+    },
+    logout({ commit }) {
+      Axios.defaults.headers.common['Authorization'] = 'Bearer ' + this.state.token
+
+      return new Promise((resolve,reject) => {
+        Axios.post('https://dev.mopaps.xtend.net.my/oauth/revoke',{
+          token: this.state.token,
+          token_type_hint: 'access_token'
+        })
+        .then(response => {
+          console.log(response);
+          commit('destroyKey')
+          resolve(response)
+        }).catch(error => {
           alert(error)
           reject(error)
         })
