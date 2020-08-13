@@ -8,7 +8,7 @@
             </v-toolbar-title>
             <v-menu offset-y>
                 <template v-slot:activator="{on, attrs}">
-                    <v-btn v-on="on" v-bind="attrs" class="ml-auto text-capitalize">{{username}} <v-icon>mdi-menu-down</v-icon></v-btn>
+                    <v-btn v-on="on" v-bind="attrs" class="ml-auto text-capitalize">{{username.username}} <v-icon>mdi-menu-down</v-icon></v-btn>
                 </template>
                 <v-list>
                     <v-list-item link @click="onLogout()">Logout</v-list-item>
@@ -126,7 +126,6 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
 export default {
     data() {
         return {
@@ -135,7 +134,7 @@ export default {
             delMod: false,
             temp_id: null,
             edit: false,
-            username: JSON.parse(localStorage.getItem("account_data")).username,
+            // username: this.$store.state.account.data,
             post: {
                 id: null,
                 title: '',
@@ -145,9 +144,24 @@ export default {
     },
     mounted() {
         this.$store.dispatch('takePost')
+        // this.$store.dispatch('userData')
     },
     computed: {
-        ...mapState(['showPost'])
+        showPost() {
+            if(this == null) {
+                return this.$store.getters.post
+            }else{
+                return null
+            }
+        },
+        username() {
+            if(this.$store.getters.dataUser != null) {
+                return this.$store.getters.dataUser
+            }else{
+                return 0
+            }
+        }
+        // ...mapState(['dataUser'])
     },
     methods: {
         delStat() {

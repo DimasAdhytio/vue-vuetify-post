@@ -8,7 +8,7 @@ export default new Vuex.Store({
   state: {
     account: {
       token: localStorage.getItem("access_token") || null,
-      data: localStorage.getItem("account_data") || null,
+      data: JSON.parse(localStorage.getItem("account_data")) || null,
       refreshToken: localStorage.getItem("refresh_token") || null
     },
     post: []
@@ -19,6 +19,9 @@ export default new Vuex.Store({
     },
     showPost(state) {
       return state.post
+    },
+    dataUser(state) {
+      return state.account.data
     }
   },
   mutations: {
@@ -96,8 +99,8 @@ export default new Vuex.Store({
 
       Axios.get("https://dev.mopaps.xtend.net.my/api/me")
       .then(response => {
-        const data = JSON.stringify(response.data)
-        localStorage.setItem('account_data', data)
+        const data = response.data
+        localStorage.setItem('account_data', JSON.stringify(data))
         commit('fetchUserData',data)
       })
     },
