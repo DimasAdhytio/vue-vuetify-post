@@ -50,8 +50,18 @@ export default new Vuex.Store({
     },
     fillPost(state,data) {
       const temp_store = JSON.parse(localStorage.getItem('account_data'))
-      data.username = temp_store.username
-      state.post.push(data)
+      data.temp_data.id = data.temp_id
+      data.temp_data.username = temp_store.username
+      state.post.push(data.temp_data)
+    },
+    editPost(state,data) {
+      state.post.splice(data.index, 1, {
+        userId: data.temp_data.userId,
+        id: data.temp_data.id,
+        username: data.temp_data.username,
+        title: data.temp_data.title,
+        body: data.temp_data.body,
+      })
     }
   },
   actions: {
@@ -123,15 +133,35 @@ export default new Vuex.Store({
       })
     },
     inPost(context, data) {
-      const id = context.state.post.length + 1
+      const temp_id = context.state.post.length + 1
       const temp_store = JSON.parse(localStorage.getItem("account_data"))
       Axios.post('https://jsonplaceholder.typicode.com/posts', {
-        userId : temp_store.uuid,
-        id: id,
+        userId: temp_store.uuid,
+        id: temp_id,
         title: data.title,
         body: data.text
       }).then(response => {
-        context.commit('fillPost',response.data)
+        const temp_data = response.data
+        context.commit('fillPost',{temp_id, temp_data})
+      }).catch(error => {
+        console.log(error);
+      })
+    },
+    edPost(context, data) {
+      const index = context.state.post.findIndex(item => item.id == data.id)
+      const user = context.state.post.filter(item => item.id == data.id)
+      Axios.patch(`https://jsonplaceholder.typicode.com/posts/${index}`, {
+        title: data.title,
+        body: data.text
+      }).then( response => {
+        const temp_data = {
+          userId: user[0].userId,
+          id: user[0].id,
+          username: user[0].username,
+          title: response.data.title,
+          body: response.data.body
+        }
+        this.commit('editPost',{index, temp_data})
       }).catch(error => {
         console.log(error);
       })

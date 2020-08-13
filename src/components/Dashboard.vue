@@ -8,7 +8,7 @@
             </v-toolbar-title>
             <v-menu offset-y>
                 <template v-slot:activator="{on, attrs}">
-                    <v-btn v-on="on" v-bind="attrs" class="ml-auto">orang <v-icon>mdi-menu-down</v-icon></v-btn>
+                    <v-btn v-on="on" v-bind="attrs" class="ml-auto text-capitalize">{{username}} <v-icon>mdi-menu-down</v-icon></v-btn>
                 </template>
                 <v-list>
                     <v-list-item link @click="onLogout()">Logout</v-list-item>
@@ -59,16 +59,19 @@
                                             <v-col class="text-truncate">
                                                 {{ item.title }}
                                             </v-col>
-                                            <v-col v-if="!deleteStat" class="text-right">
-                                                {{ item.id }} | {{ item.username }}
-                                            </v-col>
-                                            <v-btn v-else fab x-small class="mr-6 red lighten-1" elevation="0" @click="modDel(item.id)">
+                                            <v-btn v-if="deleteStat" fab x-small class="mr-6 red lighten-1" elevation="0" @click="modDel(item.id)">
                                                 <v-icon class="mdi-light">mdi-close</v-icon>
                                             </v-btn>
+                                            <v-btn v-else-if="editStat" fab x-small class="mr-6 warning lighten-1" elevation="0" @click="fillEd(item.id)">
+                                                <v-icon class="mdi-light">mdi-download</v-icon>
+                                            </v-btn>
+                                            <v-col v-else class="text-right">
+                                                {{ item.id }} | {{ item.username }}
+                                            </v-col>
                                         </v-row>
                                     </v-list-item-title>
                                     <hr>
-                                    <v-list-item-title>{{ item.body }}item</v-list-item-title>
+                                    <v-list-item-title>{{ item.body }}</v-list-item-title>
                                 </v-list-item-content>
                             </v-list-item>
                         </template>
@@ -77,7 +80,7 @@
                             <h2>Post Input</h2>
                             <h4 v-if="edit">
                                 <v-avatar tile color="warning" height="20px" class="mt-1">Edit</v-avatar>
-                                <v-avatar width="70px" height="20px" class="mt-1" tile>Id Post : </v-avatar>
+                                <v-avatar width="100px" height="20px" class="mt-1" tile>Id Post : {{ post.id }}</v-avatar>
                             </h4>
                             <v-form class="mt-6">
                                 <v-text-field
@@ -94,7 +97,8 @@
                                     label="Post ...."
                                     v-model="post.text"
                                 ></v-textarea>
-                                <v-btn color="success" @click="inPost()">Post</v-btn>
+                                <v-btn v-if="edit" color="warning" @click="edPost()">Edit</v-btn>
+                                <v-btn v-else color="success" @click="inPost()">Post</v-btn>
                                 <v-btn color="red" class="white--text ml-2" @click="clearPost()">Clear</v-btn>
                             </v-form>
                         </v-card-text>
@@ -131,6 +135,7 @@ export default {
             delMod: false,
             temp_id: null,
             edit: false,
+            username: JSON.parse(localStorage.getItem("account_data")).username,
             post: {
                 id: null,
                 title: '',
@@ -147,6 +152,11 @@ export default {
     methods: {
         delStat() {
             this.deleteStat = !this.deleteStat
+            this.editStat = false
+        },
+        edStat() {
+            this.deleteStat = false
+            this.editStat = !this.editStat
         },
         onLogout() {
             this.$store.dispatch('logout')
@@ -163,18 +173,43 @@ export default {
             }
             this.delMod = !this.delMod
         },
+        fillEd(Id) {
+            const index = this.$store.state.post.findIndex(item => item.id == Id)
+            const temp_fill = this.$store.state.post[index]
+            this.post.id = temp_fill.id
+            this.post.title = temp_fill.title
+            this.post.text = temp_fill.body
+            this.edit = true
+        },
         delPost() {
             this.delMod = !this.delMod
             const index = this.$store.state.post.findIndex(items => items.id == this.temp_id)
             this.$store.dispatch('delPost', index)
         },
         inPost() {
-            this.$store.dispatch('inPost',{
-                title: this.post.title,
-                text: this.post.text
-            })
-            this.clearPost()
-        },clearPost() {
+            if(this.post.title == '' || this.post.title == '') {
+                alert('Please dont let the post empty.')
+            }else{
+                this.$store.dispatch('inPost',{
+                    title: this.post.title,
+                    text: this.post.text
+                })
+                this.clearPost()
+            }
+        },edPost() {
+            if(this.post.title == '' || this.post.title == '') {
+                alert('Please dont let the post empty.')
+            }else{
+                this.$store.dispatch('edPost',{
+                    id: this.post.id,
+                    title: this.post.title,
+                    text: this.post.text
+                })
+                this.clearPost()
+            }
+        },
+        clearPost() {
+            this.edit = false
             this.post.id = null
             this.post.title = ''
             this.post.text = ''
