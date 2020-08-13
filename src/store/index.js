@@ -10,11 +10,15 @@ export default new Vuex.Store({
       token: localStorage.getItem("access_token") || null,
       data: localStorage.getItem("account_data") || null,
       refreshToken: localStorage.getItem("refresh_token") || null
-    }
+    },
+    post: []
   },
   getters: {
     onLogin(state) {
       return state.account.token != null
+    },
+    showPost(state) {
+      return state.post
     }
   },
   mutations: {
@@ -34,6 +38,20 @@ export default new Vuex.Store({
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
       localStorage.removeItem('account_data')
+    },
+    fetchPost(state,data) {
+      data.forEach(items => {
+        items.username = `Anonymous(${items.userId})`
+        state.post.push(items)
+      })
+    },
+    removePost(state,Id) {
+      state.post.splice(Id, 1)
+    },
+    fillPost(state,data) {
+      const temp_store = JSON.parse(localStorage.getItem('account_data'))
+      data.username = temp_store.username
+      state.post.push(data)
     }
   },
   actions: {
@@ -89,6 +107,33 @@ export default new Vuex.Store({
           alert(error)
           reject(error)
         })
+      })
+    },
+    takePost({ commit }) {
+      Axios.get('https://jsonplaceholder.typicode.com/posts')
+      .then(response => {
+        const post = response.data
+        commit('fetchPost',post)
+      })
+    },
+    delPost({ commit }, Id) {
+      Axios.delete(`https://jsonplaceholder.typicode.com/posts/${Id}`)
+      .then(() => {
+        commit('removePost',Id)
+      })
+    },
+    inPost(context, data) {
+      const id = context.state.post.length + 1
+      const temp_store = JSON.parse(localStorage.getItem("account_data"))
+      Axios.post('https://jsonplaceholder.typicode.com/posts', {
+        userId : temp_store.uuid,
+        id: id,
+        title: data.title,
+        body: data.text
+      }).then(response => {
+        context.commit('fillPost',response.data)
+      }).catch(error => {
+        console.log(error);
       })
     }
   },
