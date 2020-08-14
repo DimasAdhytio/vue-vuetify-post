@@ -27,20 +27,13 @@
                         <v-spacer></v-spacer>
 
                         <v-btn
-                            color="warning"
+                            color="grey"
                             dark
-                            @click="edStat()"
+                            small
+                            fab=""
+                            @click="modPostEd()"
                         >
-                        Edit
-                        </v-btn>
-
-                        <v-btn
-                            color="red"
-                            dark
-                            @click="delStat()"
-                            class="ml-2"
-                        >
-                        Delete
+                        <v-icon>mdi-plus</v-icon>
                         </v-btn>
                         </v-card-title>
 
@@ -48,64 +41,45 @@
 
                         <v-virtual-scroll
                         :items="this.$store.state.post"
-                        :item-height="90"
+                        :item-height="165"
                         height="500"
                         >
                         <template v-slot="{ item }">
                             <v-list-item :class="{grey : item.id % 2 == 0}">
                                 <v-list-item-content>
-                                    <v-list-item-title>
-                                        <v-row>
-                                            <v-col class="text-truncate">
-                                                {{ item.title }}
-                                            </v-col>
-                                            <v-btn v-if="deleteStat" fab x-small class="mr-6 red lighten-1" elevation="0" @click="modDel(item.id)">
-                                                <v-icon class="mdi-light">mdi-close</v-icon>
-                                            </v-btn>
-                                            <v-btn v-else-if="editStat" fab x-small class="mr-6 warning lighten-1" elevation="0" @click="fillEd(item.id)">
+                                    <v-list-item-subtitle class="text-truncate">
+                                            {{ item.id }} | {{ item.username }}
+                                    </v-list-item-subtitle>                                    
+                                    <v-row>
+                                        <v-col>
+                                            {{ item.title }}
+                                        </v-col>
+                                        <v-col class="text-right">
+                                            <v-btn fab x-small class="mr-6 warning lighten-1" elevation="0" @click="modPostEd(item.id)">
                                                 <v-icon class="mdi-light">mdi-download</v-icon>
                                             </v-btn>
-                                            <v-col v-else class="text-right">
-                                                {{ item.id }} | {{ item.username }}
-                                            </v-col>
-                                        </v-row>
-                                    </v-list-item-title>
+                                            <v-btn fab x-small class="mr-6 red lighten-1" elevation="0" @click="modDel(item.id)">
+                                                <v-icon class="mdi-light">mdi-close</v-icon>
+                                            </v-btn>
+                                        </v-col>
+                                    </v-row>
                                     <hr>
-                                    <v-list-item-title>{{ item.body }}</v-list-item-title>
+                                    <v-row>
+                                        <v-col style="height:60px" :class="$vuetify.breakpoint.mdAndDown ? 'text-truncate' : ' '">
+                                            {{ item.body }}
+                                        </v-col>
+                                    </v-row>
                                 </v-list-item-content>
                             </v-list-item>
                         </template>
                         </v-virtual-scroll>
                         <v-card-text class="grey darken-4 white--text">
-                            <h2>Post Input</h2>
-                            <h4 v-if="edit">
-                                <v-avatar tile color="warning" height="20px" class="mt-1">Edit</v-avatar>
-                                <v-avatar width="100px" height="20px" class="mt-1" tile>Id Post : {{ post.id }}</v-avatar>
-                            </h4>
-                            <v-form class="mt-6">
-                                <v-text-field
-                                    color="white"
-                                    hide-details
-                                    solo
-                                    label="Title"
-                                    class="mb-4"
-                                    height="10px"
-                                    v-model="post.title"
-                                ></v-text-field>
-                                <v-textarea
-                                    solo
-                                    label="Post ...."
-                                    v-model="post.text"
-                                ></v-textarea>
-                                <v-btn v-if="edit" color="warning" @click="edPost()">Edit</v-btn>
-                                <v-btn v-else color="success" @click="inPost()">Post</v-btn>
-                                <v-btn color="red" class="white--text ml-2" @click="clearPost()">Clear</v-btn>
-                            </v-form>
                         </v-card-text>
                     </v-card>
                 </v-col>
             </v-row>
         </v-container>
+        <!-- delete -->
         <v-dialog v-model="delMod" max-width="50%">
             <v-card>
                 <v-card-title class="white--text red">
@@ -122,6 +96,40 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <!-- post&edit -->
+        <v-dialog v-model="postEdMod" max-width="70%">
+            <v-card>
+                <v-card-title class="white--text" :class="edit ? 'warning' : 'success'">
+                    <div v-if="edit">Edit | ID : {{ temp_id }}</div>
+                    <div v-else>Post input</div>
+                </v-card-title>
+                <v-card-text class="mt-4">
+                    <v-form @submit.prevent="">
+                        <v-text-field
+                            color="white"
+                            hide-details
+                            solo
+                            label="Title"
+                            class="mb-4"
+                            height="10px"
+                            v-model="post.title"
+                        ></v-text-field>
+                        <v-textarea
+                            solo
+                            label="Post ...."
+                            v-model="post.text"
+                        ></v-textarea>
+                    </v-form>
+                </v-card-text>
+                <v-divider></v-divider>
+                <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn color="red" class="white--text ml-2" @click="clearPost()">Clear</v-btn>
+                    <v-btn v-if="edit" color="warning" @click="edPost()">Edit</v-btn>
+                    <v-btn v-else color="success" @click="inPost()">Post</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-main>
 </template>
 
@@ -129,12 +137,10 @@
 export default {
     data() {
         return {
-            deleteStat: false,
-            editStat: false,
+            postEdMod: false,
             delMod: false,
             temp_id: null,
             edit: false,
-            // username: this.$store.state.account.data,
             post: {
                 id: null,
                 title: '',
@@ -144,7 +150,6 @@ export default {
     },
     mounted() {
         this.$store.dispatch('takePost')
-        // this.$store.dispatch('userData')
     },
     computed: {
         showPost() {
@@ -161,23 +166,25 @@ export default {
                 return 0
             }
         }
-        // ...mapState(['dataUser'])
     },
     methods: {
-        delStat() {
-            this.deleteStat = !this.deleteStat
-            this.editStat = false
-        },
-        edStat() {
-            this.deleteStat = false
-            this.editStat = !this.editStat
-        },
         onLogout() {
             this.$store.dispatch('logout')
             .then(response => {
                 this.$router.push({name:'Login'})
                 console.log(response);
             })
+        },
+        modPostEd(Id) {
+            this.postEdMod = !this.postEdMod
+            if(Id != undefined) {
+                const index = this.$store.state.post.findIndex(item => item.id == Id)
+                const temp_fill = this.$store.state.post[index]
+                this.post.id = temp_fill.id
+                this.post.title = temp_fill.title
+                this.post.text = temp_fill.body
+                this.edit = true
+            }
         },
         modDel(Id) {
             if(this.temp_id == null) {
@@ -186,14 +193,6 @@ export default {
                 this.temp_id = null
             }
             this.delMod = !this.delMod
-        },
-        fillEd(Id) {
-            const index = this.$store.state.post.findIndex(item => item.id == Id)
-            const temp_fill = this.$store.state.post[index]
-            this.post.id = temp_fill.id
-            this.post.title = temp_fill.title
-            this.post.text = temp_fill.body
-            this.edit = true
         },
         delPost() {
             this.delMod = !this.delMod
@@ -209,6 +208,7 @@ export default {
                     text: this.post.text
                 })
                 this.clearPost()
+                this.postEdMod = false
             }
         },edPost() {
             if(this.post.title == '' || this.post.title == '') {
@@ -220,6 +220,7 @@ export default {
                     text: this.post.text
                 })
                 this.clearPost()
+                this.postEdMod = false
             }
         },
         clearPost() {
