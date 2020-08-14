@@ -130,9 +130,14 @@ export default new Vuex.Store({
       })
     },
     delPost({ commit }, Id) {
-      Axios.delete(`https://jsonplaceholder.typicode.com/posts/${Id}`)
-      .then(() => {
-        commit('removePost',Id)
+      return new Promise((resolve,reject) => {
+        Axios.delete(`https://jsonplaceholder.typicode.com/posts/${Id}`)
+        .then(() => {
+          commit('removePost',Id)
+          resolve()
+        }).catch(() => {
+          reject()
+        })
       })
     },
     inPost(context, data) {
@@ -153,20 +158,24 @@ export default new Vuex.Store({
     edPost(context, data) {
       const index = context.state.post.findIndex(item => item.id == data.id)
       const user = context.state.post.filter(item => item.id == data.id)
-      Axios.patch(`https://jsonplaceholder.typicode.com/posts/${index}`, {
-        title: data.title,
-        body: data.text
-      }).then( response => {
-        const temp_data = {
-          userId: user[0].userId,
-          id: user[0].id,
-          username: user[0].username,
-          title: response.data.title,
-          body: response.data.body
-        }
-        this.commit('editPost',{index, temp_data})
-      }).catch(error => {
-        console.log(error);
+      return new Promise((resolve,reject) => {
+        Axios.patch(`https://jsonplaceholder.typicode.com/posts/${index}`, {
+          title: data.title,
+          body: data.text
+        }).then( response => {
+          const temp_data = {
+            userId: user[0].userId,
+            id: user[0].id,
+            username: user[0].username,
+            title: response.data.title,
+            body: response.data.body
+          }
+          this.commit('editPost',{index, temp_data})
+          resolve()
+        }).catch(error => {
+          console.log(error);
+          reject()
+        })
       })
     }
   },

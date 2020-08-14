@@ -91,8 +91,8 @@
                 <v-divider></v-divider>
                 <v-card-actions class="">
                     <v-spacer></v-spacer>
-                    <v-btn color="success" @click="delPost()">Yes</v-btn>
                     <v-btn color="red" class="white--text" @click="modDel">Nope</v-btn>
+                    <v-btn color="success" @click="delPost()">Yes</v-btn>
                 </v-card-actions>
             </v-card>
         </v-dialog>
@@ -100,7 +100,7 @@
         <v-dialog v-model="postEdMod" max-width="70%">
             <v-card>
                 <v-card-title class="white--text" :class="edit ? 'warning' : 'success'">
-                    <div v-if="edit">Edit | ID : {{ temp_id }}</div>
+                    <div v-if="edit">Edit | ID : {{ post.id }}</div>
                     <div v-else>Post input</div>
                 </v-card-title>
                 <v-card-text class="mt-4">
@@ -130,6 +130,21 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
+        <v-dialog v-model="notif.show" max-width="50%">
+            <v-card>
+                <v-card-title class="white--text text-capitalize" :class="notif.status == 'success' ? 'success' : 'red'">
+                    {{notif.status}} {{notif.mode}}<span v-if="notif.mode == 'delet'" class="text-lowercase">e</span>
+                </v-card-title>
+                <v-card-text class="mt-4">
+                    File {{notif.status}} {{notif.mode}}ed !
+                </v-card-text>
+                <v-divider></v-divider>
+                <v-card-actions class="">
+                    <v-spacer></v-spacer>
+                    <v-btn color="success" @click="notif.show = false">Ok</v-btn>
+                </v-card-actions>
+            </v-card>
+        </v-dialog>
     </v-main>
 </template>
 
@@ -145,6 +160,11 @@ export default {
                 id: null,
                 title: '',
                 text: ''
+            },
+            notif: {
+                show: false,
+                status: '',
+                mode: ''
             }
         }
     },
@@ -175,6 +195,8 @@ export default {
         },
         modPostEd(Id) {
             this.postEdMod = !this.postEdMod
+            this.post.id = null
+            this.edit = null
             if(Id != undefined) {
                 const index = this.$store.state.post.findIndex(item => item.id == Id)
                 const temp_fill = this.$store.state.post[index]
@@ -196,6 +218,15 @@ export default {
             this.delMod = !this.delMod
             const index = this.$store.state.post.findIndex(items => items.id == this.temp_id)
             this.$store.dispatch('delPost', index)
+            .then(() => {
+                this.notif.show = true
+                this.notif.status = 'success'
+                this.notif.mode = 'delet'
+            }).catch(() => {
+                this.notif.show = true
+                this.notif.status = 'failed'
+                this.notif.mode = 'delet'
+            })
         },
         inPost() {
             if(this.post.title == '' || this.post.text == '') {
@@ -216,6 +247,14 @@ export default {
                     id: this.post.id,
                     title: this.post.title,
                     text: this.post.text
+                }).then(() => {
+                    this.notif.show = true
+                    this.notif.status = 'success'
+                    this.notif.mode = 'edit'
+                }).catch(() => {
+                    this.notif.show = true
+                    this.notif.status = 'failed'
+                    this.notif.mode = 'edit'
                 })
                 this.clearPost()
                 this.postEdMod = false
