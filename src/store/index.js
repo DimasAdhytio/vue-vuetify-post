@@ -18,7 +18,7 @@ export default new Vuex.Store({
       return state.account.token != null
     },
     showPost(state) {
-      return state.post
+      return state.post.slice().reverse()
     },
     dataUser(state) {
       return state.account.data

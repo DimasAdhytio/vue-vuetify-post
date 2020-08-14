@@ -40,7 +40,7 @@
                         <v-divider></v-divider>
 
                         <v-virtual-scroll
-                        :items="this.$store.state.post"
+                        :items="showPost"
                         :item-height="165"
                         height="500"
                         >
@@ -149,15 +149,13 @@ export default {
         }
     },
     mounted() {
-        this.$store.dispatch('takePost')
+        if(this.$store.state.post.length == 0) {
+            this.$store.dispatch('takePost')
+        }
     },
     computed: {
         showPost() {
-            if(this == null) {
-                return this.$store.getters.post
-            }else{
-                return null
-            }
+            return this.$store.getters.showPost
         },
         username() {
             if(this.$store.getters.dataUser != null) {
@@ -200,7 +198,7 @@ export default {
             this.$store.dispatch('delPost', index)
         },
         inPost() {
-            if(this.post.title == '' || this.post.title == '') {
+            if(this.post.title == '' || this.post.text == '') {
                 alert('Please dont let the post empty.')
             }else{
                 this.$store.dispatch('inPost',{
@@ -211,7 +209,7 @@ export default {
                 this.postEdMod = false
             }
         },edPost() {
-            if(this.post.title == '' || this.post.title == '') {
+            if(this.post.title == '' || this.post.text == '') {
                 alert('Please dont let the post empty.')
             }else{
                 this.$store.dispatch('edPost',{
@@ -224,8 +222,6 @@ export default {
             }
         },
         clearPost() {
-            this.edit = false
-            this.post.id = null
             this.post.title = ''
             this.post.text = ''
         }
